@@ -102,6 +102,8 @@ class Trainer():
                 self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             except:
                 print('Unable to load the checkpoint')
+        
+        logfile = open('losses.csv', 'w')
 
         self.batch_size = data_loader.batch_size
         best_loss = 100000
@@ -110,6 +112,9 @@ class Trainer():
             mean_epoch_loss = self._train_epoch(data_loader)
             print('Epoch: {} Average loss: {:.2f}'.format(epoch + 1,
                                                           self.batch_size * self.model.num_pixels * mean_epoch_loss))
+            line = "{},{:.2f}".format(epoch + 1, self.batch_size * self.model.num_pixels * mean_epoch_loss)
+            logfile.write(line)
+            logfile.write("\n")
 
             if save_training_gif is not None:
                 # Generate batch of images and convert to grid
@@ -142,6 +147,7 @@ class Trainer():
                                 'optimizer_state_dict': self.optimizer.state_dict()
                                 },'model-best-loss-checkpoint.tar')
 
+        logfile.close()
         if save_training_gif is not None:
             imageio.mimsave(save_training_gif[0], training_progress_images,
                             fps=24)
