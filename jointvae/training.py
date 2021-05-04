@@ -76,7 +76,7 @@ class Trainer():
             for i in range(len(self.model.latent_spec['disc'])):
                 self.losses['kl_loss_disc_' + str(i)] = []
 
-    def train(self, data_loader, epochs=10, save_training_gif=None):
+    def train(self, data_loader, epochs=10, save_training_gif=None, save_after_n_epochs=10, resume=False, checkpoint_path=''):
         """
         Trains the model.
 
@@ -94,8 +94,17 @@ class Trainer():
         """
         if save_training_gif is not None:
             training_progress_images = []
+        
+        if resume:
+            try:
+                checkpoint = torch.load(checkpoint_path)
+                self.model.load_state_dict(checkpoint['model_state_dict'])
+                self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            except:
+                print('Unable to load the checkpoint')
 
         self.batch_size = data_loader.batch_size
+        best_loss = 100000
         self.model.train()
         for epoch in range(epochs):
             mean_epoch_loss = self._train_epoch(data_loader)
@@ -112,6 +121,26 @@ class Trainer():
                 img_grid = np.transpose(img_grid.numpy(), (1, 2, 0))
                 # Add image grid to training progress
                 training_progress_images.append(img_grid)
+            
+            if epoch % save_after_n_epochs == 9:
+                print('saving checkpoint on epoch: ',epoch+1)
+                torch.save(self.model.state_dict(), 'model.pt')
+                torch.save({
+                            'epoch': epoch + 1,
+                            'loss': self.batch_size * self.model.num_pixels * mean_epoch_loss,
+                            'model_state_dict': self.model.state_dict(),
+                            'optimizer_state_dict': self.optimizer.state_dict()
+                            },'model-checkpoint.tar')
+                if (self.batch_size * self.model.num_pixels * mean_epoch_loss) < best_loss:
+                    print('saving best loss checkpoint on epoch: ',epoch+1)
+                    torch.save(self.model.state_dict(), 'model-best-loss.pt')
+                    best_loss = self.batch_size * self.model.num_pixels * mean_epoch_loss
+                    torch.save({
+                                'epoch': epoch + 1,
+                                'loss': self.batch_size * self.model.num_pixels * mean_epoch_loss,
+                                'model_state_dict': self.model.state_dict(),
+                                'optimizer_state_dict': self.optimizer.state_dict()
+                                },'model-best-loss-checkpoint.tar')
 
         if save_training_gif is not None:
             imageio.mimsave(save_training_gif[0], training_progress_images,

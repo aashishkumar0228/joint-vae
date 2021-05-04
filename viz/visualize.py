@@ -1,13 +1,13 @@
 import numpy as np
 import torch
-from latent_traversals import LatentTraverser
+from viz.latent_traversals import LatentTraverser
 from scipy import stats
 from torch.autograd import Variable
 from torchvision.utils import make_grid, save_image
 
 
 class Visualizer():
-    def __init__(self, model):
+    def __init__(self, model, pad_value=0.):
         """
         Visualizer is used to generate images of samples, reconstructions,
         latent traversals and so on of the trained model.
@@ -20,6 +20,7 @@ class Visualizer():
         self.latent_traverser = LatentTraverser(self.model.latent_spec)
         self.save_images = True  # If false, each method returns a tensor
                                  # instead of saving image.
+        self.pad_value = pad_value
 
     def reconstructions(self, data, size=(8, 8), filename='recon.png'):
         """
@@ -46,7 +47,7 @@ class Visualizer():
 
         # Upper half of plot will contain data, bottom half will contain
         # reconstructions
-        num_images = size[0] * size[1] / 2
+        num_images = size[0] * size[1] // 2
         originals = input_data[:num_images].cpu()
         reconstructions = recon_data.view(-1, *self.model.img_size)[:num_images].cpu()
         # If there are fewer examples given than spaces available in grid,
@@ -63,7 +64,7 @@ class Visualizer():
         if self.save_images:
             save_image(comparison.data, filename, nrow=size[0])
         else:
-            return make_grid(comparison.data, nrow=size[0])
+            return make_grid(comparison.data, nrow=size[0], pad_value=self.pad_value)
 
     def samples(self, size=(8, 8), filename='samples.png'):
         """
@@ -84,7 +85,7 @@ class Visualizer():
         if self.save_images:
             save_image(generated.data, filename, nrow=size[1])
         else:
-            return make_grid(generated.data, nrow=size[1])
+            return make_grid(generated.data, nrow=size[1], pad_value=self.pad_value)
 
     def latent_traversal_line(self, cont_idx=None, disc_idx=None, size=8,
                               filename='traversal_line.png'):
@@ -107,7 +108,7 @@ class Visualizer():
         if self.save_images:
             save_image(generated.data, filename, nrow=size)
         else:
-            return make_grid(generated.data, nrow=size)
+            return make_grid(generated.data, nrow=size, pad_value=self.pad_value)
 
     def latent_traversal_grid(self, cont_idx=None, cont_axis=None,
                               disc_idx=None, disc_axis=None, size=(5, 5),
@@ -133,7 +134,7 @@ class Visualizer():
         if self.save_images:
             save_image(generated.data, filename, nrow=size[1])
         else:
-            return make_grid(generated.data, nrow=size[1])
+            return make_grid(generated.data, nrow=size[1], pad_value=self.pad_value)
 
     def all_latent_traversals(self, size=8, filename='all_traversals.png'):
         """
@@ -165,7 +166,58 @@ class Visualizer():
         if self.save_images:
             save_image(generated.data, filename, nrow=size)
         else:
-            return make_grid(generated.data, nrow=size)
+            return make_grid(generated.data, nrow=size, pad_value=self.pad_value)
+    
+    def latent_traversal_fix_discrete_vary_continous(self, cont_idx=None, disc_idx=None, size=8, discrete_label=0, sample_prior_cont=False,
+                                                     filename='traversal_line_fix_discrete_vary_continous.png'):
+        """
+        Generates an image traversal through a latent dimension.
+
+        Parameters
+        ----------
+        See viz.latent_traversals.LatentTraverser.traverse_line for parameter
+        documentation.
+        """
+        # Generate latent traversal
+        latent_samples = self.latent_traverser.traverse_line_fix_discrete_vary_continous(cont_idx=cont_idx,
+                                                             disc_idx=disc_idx,
+                                                             discrete_label=discrete_label,
+                                                             sample_prior_cont=sample_prior_cont,
+                                                             size=size)
+
+        # Map samples through decoder
+        generated = self._decode_latents(latent_samples)
+
+        if self.save_images:
+            save_image(generated.data, filename, nrow=size)
+        else:
+            return make_grid(generated.data, nrow=size, pad_value=self.pad_value)
+    
+    def latent_traversal_mix_discrete_vary_continous(self, cont_idx=None, disc_idx=None, size=8, discrete_labels=[0], weights=[1], sample_prior_cont=False,
+                                                     filename='traversal_line_mix_discrete_vary_continous.png'):
+        """
+        Generates an image traversal through a latent dimension.
+
+        Parameters
+        ----------
+        See viz.latent_traversals.LatentTraverser.traverse_line for parameter
+        documentation.
+        """
+        # Generate latent traversal
+        latent_samples = self.latent_traverser.traverse_line_mix_discrete_vary_continous(cont_idx=cont_idx,
+                                                             disc_idx=disc_idx,
+                                                             discrete_labels=discrete_labels,
+                                                             weights=weights,
+                                                             sample_prior_cont=sample_prior_cont,
+                                                             size=size)
+
+        # Map samples through decoder
+        generated = self._decode_latents(latent_samples)
+
+        if self.save_images:
+            save_image(generated.data, filename, nrow=size)
+        else:
+            return make_grid(generated.data, nrow=size, pad_value=self.pad_value)
 
     def _decode_latents(self, latent_samples):
         """

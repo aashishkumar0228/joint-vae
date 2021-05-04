@@ -276,3 +276,173 @@ class LatentTraverser():
                 samples[:, 0] = 1.
 
         return torch.Tensor(samples)
+    
+    def traverse_line_fix_discrete_vary_continous(self, cont_idx=None, disc_idx=None, discrete_label=0, sample_prior_cont=False, size=5):
+        """
+        Returns a (size, D) latent sample, corresponding to a traversal of the
+        latent variable indicated by cont_idx or disc_idx.
+
+        Parameters
+        ----------
+        cont_idx : int or None
+            Index of continuous dimension to traverse. If the continuous latent
+            vector is 10 dimensional and cont_idx = 7, then the 7th dimension
+            will be traversed while all others will either be fixed or randomly
+            sampled. If None, no latent is traversed and all latent
+            dimensions are randomly sampled or kept fixed.
+
+        disc_idx : int or None
+            Index of discrete latent dimension to traverse. If there are 5
+            discrete latent variables and disc_idx = 3, then only the 3rd
+            discrete latent will be traversed while others will be fixed or
+            randomly sampled. If None, no latent is traversed and all latent
+            dimensions are randomly sampled or kept fixed.
+
+        size : int
+            Number of samples to generate.
+        """
+        samples = []
+
+        if self.is_continuous:
+            samples.append(self._traverse_continuous_line_custom(idx=cont_idx,
+                                                                 size=size,
+                                                                 sample_prior=sample_prior_cont))
+        if self.is_discrete:
+            for i, disc_dim in enumerate(self.disc_dims):
+                if i == disc_idx:
+                    samples.append(self._traverse_discrete_line_fix(dim=disc_dim,
+                                                                discrete_label=discrete_label,
+                                                                traverse=True,
+                                                                size=size))
+                else:
+                    samples.append(self._traverse_discrete_line_fix(dim=disc_dim,
+                                                                discrete_label=discrete_label,
+                                                                traverse=False,
+                                                                size=size))
+
+        return torch.cat(samples, dim=1)
+    
+    def _traverse_continuous_line_custom(self, idx, size, sample_prior):
+        """
+        Returns a (size, cont_dim) latent sample, corresponding to a traversal
+        of a continuous latent variable indicated by idx.
+
+        Parameters
+        ----------
+        idx : int or None
+            Index of continuous latent dimension to traverse. If None, no
+            latent is traversed and all latent dimensions are randomly sampled
+            or kept fixed.
+
+        size : int
+            Number of samples to generate.
+        """
+        if sample_prior:
+            samples = np.random.normal(size=(size, self.cont_dim))
+        else:
+            samples = np.zeros(shape=(size, self.cont_dim))
+
+        if idx is not None:
+            # Sweep over linearly spaced coordinates transformed through the
+            # inverse CDF (ppf) of a gaussian since the prior of the latent
+            # space is gaussian
+            cdf_traversal = np.linspace(0.05, 0.95, size)
+            cont_traversal = stats.norm.ppf(cdf_traversal)
+
+            for i in range(size):
+                samples[i, idx] = cont_traversal[i]
+
+        return torch.Tensor(samples)
+    
+    def _traverse_discrete_line_fix(self, dim, discrete_label, traverse, size):
+        """
+        Returns a (size, dim) latent sample, corresponding to a traversal of a
+        discrete latent variable.
+
+        Parameters
+        ----------
+        dim : int
+            Number of categories of discrete latent variable.
+
+        traverse : bool
+            If True, traverse the categorical variable otherwise keep it fixed
+            or randomly sample.
+
+        size : int
+            Number of samples to generate.
+        """
+        samples = np.zeros((size, dim))
+
+        if traverse:
+            for i in range(size):
+                samples[i, i % dim] = 1.
+        else:
+            # Randomly select discrete variable (i.e. sample from uniform prior)
+            if self.sample_prior:
+                samples[np.arange(size), np.random.randint(0, dim, size)] = 1.
+            else:
+                samples[:, discrete_label] = 1.
+
+        return torch.Tensor(samples)
+    
+    def traverse_line_mix_discrete_vary_continous(self, cont_idx=None, disc_idx=None, discrete_labels=[0], weights=[1.], sample_prior_cont=False, size=5):
+        """
+        Returns a (size, D) latent sample, corresponding to a traversal of the
+        latent variable indicated by cont_idx or disc_idx.
+
+        Parameters
+        ----------
+        cont_idx : int or None
+            Index of continuous dimension to traverse. If the continuous latent
+            vector is 10 dimensional and cont_idx = 7, then the 7th dimension
+            will be traversed while all others will either be fixed or randomly
+            sampled. If None, no latent is traversed and all latent
+            dimensions are randomly sampled or kept fixed.
+
+        disc_idx : int or None
+            Index of discrete latent dimension to traverse. If there are 5
+            discrete latent variables and disc_idx = 3, then only the 3rd
+            discrete latent will be traversed while others will be fixed or
+            randomly sampled. If None, no latent is traversed and all latent
+            dimensions are randomly sampled or kept fixed.
+
+        size : int
+            Number of samples to generate.
+        """
+        samples = []
+
+        if self.is_continuous:
+            samples.append(self._traverse_continuous_line_custom(idx=cont_idx,
+                                                                 size=size,
+                                                                 sample_prior=sample_prior_cont))
+        if self.is_discrete:
+            for i, disc_dim in enumerate(self.disc_dims):
+                samples.append(self._traverse_discrete_line_mix(dim=disc_dim,
+                                                                discrete_labels=discrete_labels,
+                                                                weights=weights,
+                                                                size=size))
+
+        return torch.cat(samples, dim=1)
+    
+    def _traverse_discrete_line_mix(self, dim, discrete_labels, weights, size):
+        """
+        Returns a (size, dim) latent sample, corresponding to a traversal of a
+        discrete latent variable.
+
+        Parameters
+        ----------
+        dim : int
+            Number of categories of discrete latent variable.
+
+        traverse : bool
+            If True, traverse the categorical variable otherwise keep it fixed
+            or randomly sample.
+
+        size : int
+            Number of samples to generate.
+        """
+        samples = np.zeros((size, dim))
+        for discrete_label, weight in zip(discrete_labels, weights):
+            samples[:, discrete_label] = weight
+
+        return torch.Tensor(samples)
