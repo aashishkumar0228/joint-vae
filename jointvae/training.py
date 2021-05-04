@@ -76,7 +76,7 @@ class Trainer():
             for i in range(len(self.model.latent_spec['disc'])):
                 self.losses['kl_loss_disc_' + str(i)] = []
 
-    def train(self, data_loader, epochs=10, save_training_gif=None, save_after_n_epochs=10, resume=False, checkpoint_path=''):
+    def train(self, data_loader, epochs=10, save_training_gif=None, save_after_n_epochs=10, resume=False, checkpoint_path='', model_dir='./model_in_progress/'):
         """
         Trains the model.
 
@@ -103,7 +103,7 @@ class Trainer():
             except:
                 print('Unable to load the checkpoint')
         
-        logfile = open('losses.csv', 'w')
+        logfile = open(model_dir + 'losses.csv', 'w')
 
         self.batch_size = data_loader.batch_size
         best_loss = 100000
@@ -127,25 +127,25 @@ class Trainer():
                 # Add image grid to training progress
                 training_progress_images.append(img_grid)
             
-            if epoch % save_after_n_epochs == 9:
+            if (epoch + 1) % save_after_n_epochs == 0:
                 print('saving checkpoint on epoch: ',epoch+1)
-                torch.save(self.model.state_dict(), 'model.pt')
+                torch.save(self.model.state_dict(), model_dir + 'model.pt')
                 torch.save({
                             'epoch': epoch + 1,
                             'loss': self.batch_size * self.model.num_pixels * mean_epoch_loss,
                             'model_state_dict': self.model.state_dict(),
                             'optimizer_state_dict': self.optimizer.state_dict()
-                            },'model-checkpoint.tar')
+                            },model_dir + 'model-checkpoint.tar')
                 if (self.batch_size * self.model.num_pixels * mean_epoch_loss) < best_loss:
                     print('saving best loss checkpoint on epoch: ',epoch+1)
-                    torch.save(self.model.state_dict(), 'model-best-loss.pt')
+                    torch.save(self.model.state_dict(), model_dir + 'model-best-loss.pt')
                     best_loss = self.batch_size * self.model.num_pixels * mean_epoch_loss
                     torch.save({
                                 'epoch': epoch + 1,
                                 'loss': self.batch_size * self.model.num_pixels * mean_epoch_loss,
                                 'model_state_dict': self.model.state_dict(),
                                 'optimizer_state_dict': self.optimizer.state_dict()
-                                },'model-best-loss-checkpoint.tar')
+                                },model_dir + 'model-best-loss-checkpoint.tar')
 
         logfile.close()
         if save_training_gif is not None:
