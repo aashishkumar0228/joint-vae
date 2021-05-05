@@ -6,7 +6,7 @@ EPS = 1e-12
 
 
 class VAE(nn.Module):
-    def __init__(self, img_size, latent_spec, temperature=.67, use_cuda=False):
+    def __init__(self, img_size, latent_spec, temperature=.67, use_cuda=False, hidden_dim=256):
         """
         Class which defines model and forward pass.
 
@@ -37,7 +37,7 @@ class VAE(nn.Module):
         self.latent_spec = latent_spec
         self.num_pixels = img_size[1] * img_size[2]
         self.temperature = temperature
-        self.hidden_dim = 256  # Hidden dimension of linear layer
+        self.hidden_dim = hidden_dim  # Hidden dimension of linear layer
         self.reshape = (64, 4, 4)  # Shape required to start transpose convs
 
         # Calculate dimensions of latent distribution
