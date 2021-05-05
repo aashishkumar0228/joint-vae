@@ -10,8 +10,8 @@ lr = 5e-4
 epochs = 100
 
 # Check for cuda
-# use_cuda = torch.cuda.is_available()
-use_cuda = False
+use_cuda = torch.cuda.is_available()
+# use_cuda = False
 
 # Load data
 # data_loader, _ = get_mnist_dataloaders(batch_size=batch_size)
@@ -23,7 +23,7 @@ img_size = (1, 32, 32)
 # Define latent spec and model
 # latent_spec = {'cont': 10, 'disc': [10]}
 latent_spec = {'cont': 20, 'disc': [40]}
-hidden_dim = 256
+hidden_dim = 512
 model = VAE(img_size=img_size, latent_spec=latent_spec,
             use_cuda=use_cuda, hidden_dim=hidden_dim)
 if use_cuda:
