@@ -36,7 +36,7 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 # Define trainer
 trainer = Trainer(model, optimizer,
                   cont_capacity=[0.0, 5.0, 25000, 30],
-                  disc_capacity=[0.0, 5.0, 25000, 30],
+                  disc_capacity=[0.0, 10.0, 25000, 40],
                   use_cuda=use_cuda)
 
 # Train model for 100 epochs
