@@ -1,5 +1,6 @@
 import torch
 from jointvae.models import VAE
+from jointvae.models_custom import VAE_EMNIST
 from jointvae.training import Trainer
 from utils.dataloaders import get_mnist_dataloaders, get_emnist_uppercase_dataloaders
 from torch import optim
@@ -24,7 +25,7 @@ img_size = (1, 32, 32)
 # latent_spec = {'cont': 10, 'disc': [10]}
 latent_spec = {'cont': 10, 'disc': [26]}
 hidden_dim = 256
-model = VAE(img_size=img_size, latent_spec=latent_spec,
+model = VAE_EMNIST(img_size=img_size, latent_spec=latent_spec,
             use_cuda=use_cuda, hidden_dim=hidden_dim)
 if use_cuda:
     model.cuda()
