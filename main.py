@@ -10,7 +10,8 @@ lr = 5e-4
 epochs = 100
 
 # Check for cuda
-use_cuda = torch.cuda.is_available()
+# use_cuda = torch.cuda.is_available()
+use_cuda = False
 
 # Load data
 # data_loader, _ = get_mnist_dataloaders(batch_size=batch_size)
