@@ -16,7 +16,7 @@ use_cuda = torch.cuda.is_available()
 # use_cuda = False
 
 # Load data
-data_loader, _ = get_mnist_dataloaders(batch_size=batch_size, path_to_data='/home/kaushikdas/aashish/pytorch_datasets)
+data_loader, _ = get_mnist_dataloaders(batch_size=batch_size, path_to_data='/home/kaushikdas/aashish/pytorch_datasets')
 # data_loader, _ = get_emnist_uppercase_dataloaders(batch_size=batch_size,
 #                                                   path_to_train_csv='/home/kaushikdas/aashish/pytorch_datasets/EMNIST_UPPERCASE_LETTER/emnist_uppercase_train_4th_May_2021.csv',
 #                                                   path_to_test_csv='/home/kaushikdas/aashish/pytorch_datasets/EMNIST_UPPERCASE_LETTER/emnist_uppercase_test_3rd_May_2021.csv')
