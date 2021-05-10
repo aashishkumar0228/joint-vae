@@ -218,6 +218,33 @@ class Visualizer():
             save_image(generated.data, filename, nrow=size)
         else:
             return make_grid(generated.data, nrow=size, pad_value=self.pad_value)
+    
+    def latent_traversal_latent_sample(self, cont_idx=None, latent_sample=None, size=8,
+                                        filename='latent_traversal_latent_sample.png'):
+        """
+        Generates an image traversal through a latent dimension.
+
+        Parameters
+        ----------
+        See viz.latent_traversals.LatentTraverser.traverse_line for parameter
+        documentation.
+        """
+        # Generate latent traversal
+        samples = np.zeros(shape=(size, self.model.latent_cont_dim + self.model.latent_disc_dim))
+        cdf_traversal = np.linspace(0.05, 0.95, size)
+        cont_traversal = stats.norm.ppf(cdf_traversal)
+        for i in range(0,size):
+            samples[i] = latent_sample.detach().numpy()
+            samples[i][cont_idx] = cdf_traversal[i]
+        samples = torch.Tensor(samples)
+
+        # Map samples through decoder
+        generated = self._decode_latents(samples)
+
+        if self.save_images:
+            save_image(generated.data, filename, nrow=size)
+        else:
+            return make_grid(generated.data, nrow=size, pad_value=self.pad_value)
 
     def _decode_latents(self, latent_samples):
         """
