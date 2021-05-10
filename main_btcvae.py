@@ -16,16 +16,16 @@ use_cuda = torch.cuda.is_available()
 # use_cuda = False
 
 # Load data
-data_loader, _ = get_mnist_dataloaders(batch_size=batch_size, path_to_data='/home/kaushikdas/aashish/pytorch_datasets')
-# data_loader, _ = get_emnist_uppercase_dataloaders(batch_size=batch_size,
-#                                                   path_to_train_csv='/home/kaushikdas/aashish/pytorch_datasets/EMNIST_UPPERCASE_LETTER/emnist_uppercase_train_4th_May_2021.csv',
-#                                                   path_to_test_csv='/home/kaushikdas/aashish/pytorch_datasets/EMNIST_UPPERCASE_LETTER/emnist_uppercase_test_3rd_May_2021.csv')
+# data_loader, _ = get_mnist_dataloaders(batch_size=batch_size, path_to_data='/home/kaushikdas/aashish/pytorch_datasets')
+data_loader, _ = get_emnist_uppercase_dataloaders(batch_size=batch_size,
+                                                  path_to_train_csv='/home/kaushikdas/aashish/pytorch_datasets/EMNIST_UPPERCASE_LETTER/emnist_uppercase_train_4th_May_2021.csv',
+                                                  path_to_test_csv='/home/kaushikdas/aashish/pytorch_datasets/EMNIST_UPPERCASE_LETTER/emnist_uppercase_test_3rd_May_2021.csv')
 
 img_size = (1, 32, 32)
 
 # Define latent spec and model
 # latent_spec = {'cont': 10, 'disc': [10]}
-latent_spec = {'cont': 10, 'disc': [10]}
+latent_spec = {'cont': 32, 'disc': [50]}
 hidden_dim = 256
 is_mss = True
 model = BTCVAE_EMNIST(img_size=img_size, latent_spec=latent_spec,
