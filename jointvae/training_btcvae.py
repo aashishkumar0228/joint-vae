@@ -201,7 +201,7 @@ class Trainer_BTCVAE():
             data = data.cuda()
 
         self.optimizer.zero_grad()
-        recon_batch, latent_dist, latent_sample = self.model(data)
+        recon_batch, latent_dist = self.model(data)
         loss = self._loss_function(data, recon_batch, latent_dist, self.model.latent_cont_sample)
         loss.backward()
         self.optimizer.step()

@@ -787,4 +787,4 @@ class BTCVAE_EMNIST(nn.Module):
         """
         latent_dist = self.encode(x)
         latent_sample = self.reparameterize(latent_dist)
-        return self.decode(latent_sample), latent_dist, latent_sample
+        return self.decode(latent_sample), latent_dist
