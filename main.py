@@ -30,7 +30,7 @@ img_size = (1, 32, 32)
 
 # Define latent spec and model
 # latent_spec = {'cont': 10, 'disc': [10]}
-latent_spec = {'cont': 10}
+latent_spec = {'cont': 16}
 hidden_dim = 256
 model = VAE(img_size=img_size, latent_spec=latent_spec,
             use_cuda=use_cuda, hidden_dim=hidden_dim)
