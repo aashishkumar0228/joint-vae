@@ -78,6 +78,22 @@ def get_emnist_uppercase_dataloaders(batch_size=128,
     test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
     return train_loader, test_loader
 
+def get_emnist_uppercase_reduced_dataloaders(batch_size=128, 
+                                          path_to_train_csv='/Users/aashishkumar/Documents/notebooks/emnist_uppercase_train_11th_May_2021_reduced.csv',
+                                          path_to_test_csv='/Users/aashishkumar/Documents/notebooks/emnist_uppercase_test_11th_May_2021_reduced.csv'):
+    """ Handwriting Operators dataloader with (32, 32) images 
+    emnist_uppercase_train_11th_May_2021_reduced.csv has 10 uppercase classes """
+
+    all_transforms = transforms.Compose([
+        transforms.Resize(32),
+        transforms.ToTensor()
+    ])
+    train_data = HandwritingDataset(path_to_train_csv, transform=all_transforms)
+    test_data = HandwritingDataset(path_to_test_csv, transform=all_transforms)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
+    return train_loader, test_loader
+
 
 def get_mnist_dataloaders(batch_size=128, path_to_data='/Users/aashishkumar/Documents/pytorch_datasets'):
     """MNIST dataloader with (32, 32) images."""
