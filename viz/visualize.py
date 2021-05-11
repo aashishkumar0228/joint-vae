@@ -245,6 +245,90 @@ class Visualizer():
             save_image(generated.data, filename, nrow=size)
         else:
             return make_grid(generated.data, nrow=size, pad_value=self.pad_value)
+    
+
+    def latent_traversal_all_latent_samples_sub_function(self, cont_idx, latent_sample, size=8):
+        samples = np.zeros(shape=(size, self.model.latent_cont_dim + self.model.latent_disc_dim))
+        cdf_traversal = np.linspace(0.05, 0.95, size)
+        cont_traversal = stats.norm.ppf(cdf_traversal)
+        for i in range(0,size):
+            samples[i] = latent_sample.detach().numpy()
+            samples[i][cont_idx] = cdf_traversal[i]
+        samples = torch.Tensor(samples)
+        return samples
+    
+    def latent_traversal_all_latent_samples(self, latent_sample=None, size=8,
+                                        filename='latent_traversal_all_latent_samples.png'):
+        """
+        Generates an image traversal through a latent dimension.
+
+        Parameters
+        ----------
+        See viz.latent_traversals.LatentTraverser.traverse_line for parameter
+        documentation.
+        """
+        # Generate latent traversal
+        samples = [self.latent_traversal_all_latent_samples_sub_function(cont_idx=cont_idx, latent_sample=latent_sample, size=size) 
+                   for cont_idx in range(self.model.latent_cont_dim)]
+        
+
+        # Map samples through decoder
+        generated = self._decode_latents(torch.cat(samples, dim=0))
+
+        if self.save_images:
+            save_image(generated.data, filename, nrow=size)
+        else:
+            return make_grid(generated.data, nrow=size, pad_value=self.pad_value)
+    
+    def latent_traversal_cont_line(self, cont_idx=0,n_samples=8,data=None):
+        if data is None:
+            # mean of prior for other dimensions
+            latent_sample = torch.zeros(n_samples, self.model.latent_cont_dim + self.model.latent_disc_dim)
+            cdf_traversal = np.linspace(0.05, 0.95, n_samples)
+            cont_traversal = stats.norm.ppf(cdf_traversal)
+
+        else:
+            if data.size(0) > 1:
+                raise ValueError("Every value should be sampled from the same posterior, but {} datapoints given.".format(data.size(0)))
+
+            with torch.no_grad():
+                latent_dist = self.model.encode(data)
+                post_mean, post_logvar = latent_dist['cont']
+                latent_sample = self.model.reparameterize(latent_dist)
+                latent_sample = latent_sample.cpu().repeat(n_samples, 1)
+                post_mean_idx = post_mean.detach().numpy()[0, cont_idx]
+                post_std_idx = torch.exp(post_logvar / 2).detach().numpy()[0, cont_idx]
+
+            # travers from the gaussian of the posterior in case quantile
+            cdf_traversal = np.linspace(0.05, 0.95, n_samples)
+            cont_traversal = stats.norm.ppf(cdf_traversal, loc=post_mean_idx, scale=post_std_idx)
+            # print(cont_traversal)
+
+        for i in range(n_samples):
+            latent_sample[i, cont_idx] = cont_traversal[i]
+        # print(latent_sample)
+        return latent_sample
+    
+    def latent_traversal_cont_data(self, data=None, n_latents=None, size=8,
+                                        filename='latent_traversal_cont_data.png'):
+        """
+        Generates an image traversal through a latent dimension.
+
+        Parameters
+        ----------
+        See viz.latent_traversals.LatentTraverser.traverse_line for parameter
+        documentation.
+        """
+        # Generate latent traversal
+        n_latents = n_latents if n_latents is not None else self.model.latent_cont_dim
+        latent_samples = [self.latent_traversal_cont_line(cont_idx=dim, n_samples=size, data=data)
+                          for dim in range(self.model.latent_cont_dim)]
+        generated = self._decode_latents(torch.cat(latent_samples, dim=0))
+
+        if self.save_images:
+            save_image(generated.data, filename, nrow=size)
+        else:
+            return make_grid(generated.data, nrow=size, pad_value=self.pad_value)
 
     def _decode_latents(self, latent_samples):
         """
