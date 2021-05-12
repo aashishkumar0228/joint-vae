@@ -47,7 +47,7 @@ trainer = Trainer_BTCVAE(model, optimizer,
                   cont_capacity=[0.0, 5.0, 25000, 30.0],
                   disc_capacity=[0.0, 5.0, 25000, 30.0],
                   use_cuda=use_cuda,
-                  beta=beta
+                  beta=beta,
                   is_mss=is_mss)
 
 # Train model for 100 epochs
