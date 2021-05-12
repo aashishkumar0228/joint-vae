@@ -11,7 +11,7 @@ EPS = 1e-12
 class Trainer_BTCVAE():
     def __init__(self, model, optimizer, cont_capacity=None,
                  disc_capacity=None, print_loss_every=50, record_loss_every=5,
-                 use_cuda=False, is_mss=True):
+                 use_cuda=False, beta=6, is_mss=True):
         """
         Class to handle training of model.
 
@@ -50,7 +50,7 @@ class Trainer_BTCVAE():
         self.is_mss = is_mss
         self.steps_anneal = 10000
         self.alpha_loss = 1
-        self.beta = 6
+        self.beta = beta
         self.gamma = 1
 
         if self.model.is_continuous and self.cont_capacity is None:
