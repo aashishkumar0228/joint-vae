@@ -78,6 +78,22 @@ def get_emnist_uppercase_dataloaders(batch_size=128,
     test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
     return train_loader, test_loader
 
+def get_emnist_lowercase_dataloaders(batch_size=128, 
+                                          path_to_train_csv='/Users/aashishkumar/Documents/notebooks/emnist_lowercase_train_13th_May.csv',
+                                          path_to_test_csv='/Users/aashishkumar/Documents/notebooks/emnist_lowercase_test_13th_May.csv'):
+    """ Handwriting Operators dataloader with (32, 32) images 
+    emnist_uppercase_train_3rd_May_2021.csv has 26 uppercase classes """
+
+    all_transforms = transforms.Compose([
+        transforms.Resize(32),
+        transforms.ToTensor()
+    ])
+    train_data = HandwritingDataset(path_to_train_csv, transform=all_transforms)
+    test_data = HandwritingDataset(path_to_test_csv, transform=all_transforms)
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True)
+    return train_loader, test_loader
+
 def get_emnist_uppercase_reduced_dataloaders(batch_size=128, 
                                           path_to_train_csv='/Users/aashishkumar/Documents/notebooks/emnist_uppercase_train_11th_May_2021_reduced.csv',
                                           path_to_test_csv='/Users/aashishkumar/Documents/notebooks/emnist_uppercase_test_11th_May_2021_reduced.csv'):
